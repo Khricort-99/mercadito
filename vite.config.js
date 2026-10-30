@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig(({ command, isPreview }) => ({
-  base: command === 'build' || isPreview ? '/mercadito/' : '/',
+  base: command === 'build' || isPreview ? '/' : '/',
   plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
