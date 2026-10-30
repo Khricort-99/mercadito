@@ -41,9 +41,8 @@ function writeLocal(products) {
 function ensureLocalSeed() {
   const existing = readLocal()
   if (existing && existing.length) return existing
-  const seeded = createSeedProducts()
-  writeLocal(seeded)
-  return seeded
+  writeLocal([])
+  return []
 }
 
 function normalizeProduct(input) {
@@ -154,7 +153,7 @@ export const productStorage = {
   async list() {
     try {
       const remote = await fetchProducts()
-      const products = remote.map(normalizeStored)
+      const products = remote.map(normalizeStored).filter((p) => !String(p.id).startsWith('seed-'))
       cacheList(products)
       return sortProducts(products)
     } catch (error) {
@@ -170,7 +169,7 @@ export const productStorage = {
   subscribe(onChange, onError) {
     return subscribeProducts(
       (products) => {
-        const normalized = products.map(normalizeStored)
+        const normalized = products.map(normalizeStored).filter((p) => !String(p.id).startsWith('seed-'))
         cacheList(normalized)
         onChange(sortProducts(normalized))
       },
