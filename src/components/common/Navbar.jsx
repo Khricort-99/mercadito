@@ -202,13 +202,15 @@ export function Navbar() {
         </form>
 
         <div className="ml-auto flex items-center gap-1.5">
-          <Link
-            to="/admin/publicar"
-            className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'shrink-0' })}
-          >
-            <Plus size={16} />
-            <span className="hidden sm:inline">Vender</span>
-          </Link>
+          {isAuthenticated && (
+            <Link
+              to="/admin/publicar"
+              className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'shrink-0' })}
+            >
+              <Plus size={16} />
+              <span className="hidden sm:inline">Vender</span>
+            </Link>
+          )}
 
           <div className="relative" ref={menuRef}>
             <button
@@ -252,9 +254,6 @@ export function Navbar() {
                   <>
                     <MenuLink to="/admin/login" icon={ShieldCheck} onClick={() => setMenuOpen(false)}>
                       Acceso administrador
-                    </MenuLink>
-                    <MenuLink to="/admin/publicar" icon={Plus} onClick={() => setMenuOpen(false)}>
-                      Publicar un artículo
                     </MenuLink>
                   </>
                 )}
