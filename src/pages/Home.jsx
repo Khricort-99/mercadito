@@ -103,6 +103,8 @@ export default function Home() {
     })
   }, [products, filters])
 
+  const displayedProducts = visibleProducts.slice(0, 15)
+
   const activeFilterCount = [
     Boolean(filters.q),
     filters.categoria !== 'todas',
@@ -163,8 +165,8 @@ export default function Home() {
     filters.categoria !== 'todas' ? getCategory(filters.categoria).label : ''
   usePageTitle(pageTitle)
 
-  const resultsLabel = `${visibleProducts.length} ${
-    visibleProducts.length === 1 ? 'publicación' : 'publicaciones'
+  const resultsLabel = `${displayedProducts.length} ${
+    displayedProducts.length === 1 ? 'publicación' : 'publicaciones'
   }`
 
   return (
@@ -277,7 +279,7 @@ export default function Home() {
               </Button>
             </div>
           ) : (
-            <ProductGrid products={visibleProducts} loading={loading} skeletonCount={10} />
+            <ProductGrid products={displayedProducts} loading={loading} skeletonCount={10} />
           )}
         </section>
       </main>
@@ -293,7 +295,7 @@ export default function Home() {
               Limpiar
             </Button>
             <Button onClick={() => setFiltersOpen(false)}>
-              Ver {visibleProducts.length} resultados
+              Ver {displayedProducts.length} resultados
             </Button>
           </>
         }
