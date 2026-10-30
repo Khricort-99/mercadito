@@ -67,12 +67,17 @@ export default function Home() {
     setParams(new URLSearchParams(), { replace: true })
   }, [setParams])
 
+  const realProducts = useMemo(
+    () => products.filter((p) => !String(p.id ?? '').startsWith('seed-')),
+    [products]
+  )
+
   const visibleProducts = useMemo(() => {
     const term = normalizeText(filters.q)
     const min = filters.min ? Number(filters.min) : null
     const max = filters.max ? Number(filters.max) : null
 
-    const list = products.filter((product) => {
+    const list = realProducts.filter((product) => {
       if (!filters.vendidos && product.availability !== 'disponible') return false
       if (filters.categoria !== 'todas' && product.category !== filters.categoria) return false
       if (filters.categoria === 'ropa' && filters.genero && product.genero !== filters.genero)
@@ -101,7 +106,7 @@ export default function Home() {
       if (filters.orden === 'price_desc') return Number(b.price) - Number(a.price)
       return new Date(b.createdAt) - new Date(a.createdAt)
     })
-  }, [products, filters])
+  }, [realProducts, filters])
 
   const hasActiveIntent =
     Boolean(filters.q) ||
