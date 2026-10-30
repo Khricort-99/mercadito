@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+@theme {
+  --color-fb-blue: #1877f2;
+  --color-fb-blue-dark: #0f5fd0;
+  --color-fb-blue-soft: #e7f3ff;
+  --color-fb-bg: #f0f2f5;
+  --color-fb-border: #ced0d4;
+  --color-fb-line: #e4e6eb;
+  --color-fb-ink: #050507;
+  --color-fb-gray: #65676b;
+  --color-fb-soft: #e4e6eb;
+  --color-wa: #25d366;
+  --color-wa-dark: #1da851;
+  --color-wa-soft: #e7f8ee;
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial,
+    sans-serif;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(0, 0, 0, 0.03);
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.16);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-fb-bg font-sans text-fb-ink;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  ::selection {
+    background: rgba(24, 119, 242, 0.22);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-fb-blue);
+    outline-offset: 2px;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .thin-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #bcc0c4 transparent;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .thin-scrollbar::-webkit-scrollbar-thumb {
+    background: #bcc0c4;
+    border-radius: 999px;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.18s ease-out both;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.18s ease-out both;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.22s ease-out both;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
