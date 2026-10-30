@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { formatPrice } from '../utils/format.js'
+import { productUrl } from '../utils/url.js'
 
 const FALLBACK_NUMBER = '56971448109'
 
@@ -8,8 +9,7 @@ function getWhatsAppNumber() {
 }
 
 function buildProductUrl(product) {
-  if (typeof window === 'undefined') return ''
-  return `${window.location.origin}${import.meta.env.BASE_URL}producto/${product.id}`
+  return productUrl(product.id)
 }
 
 function buildProductMessage(product, url) {

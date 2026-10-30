@@ -1,5 +1,6 @@
 import { getApp, getApps, initializeApp } from 'firebase/app'
 import { browserLocalPersistence, getAuth, setPersistence } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
 
 const env = import.meta.env
 
@@ -36,7 +37,8 @@ const firebaseConfig = {
   measurementId: read('VITE_FIREBASE_MEASUREMENT_ID', DEFAULT_CONFIG.measurementId)
 }
 
-const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig)
+export const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig)
 
 export const auth = getAuth(firebaseApp)
+export const db = getFirestore(firebaseApp)
 export const persistenceReady = setPersistence(auth, browserLocalPersistence)

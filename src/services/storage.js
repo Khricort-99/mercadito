@@ -1,52 +1,49 @@
 import { createSeedProducts } from '../data/seed.js'
 import { createId } from '../utils/id.js'
+import {
+  deleteProduct as deleteRemoteProduct,
+  fetchProduct,
+  fetchProducts,
+  hasProducts,
+  saveProduct as saveRemoteProduct,
+  saveProducts,
+  subscribeProducts
+} from './firestore.js'
 
 const PRODUCTS_KEY = 'mercado-cl:products:v1'
-
-function safeParse(value, fallback) {
-  try {
-    return value ? JSON.parse(value) : fallback
-  } catch {
-    return fallback
-  }
-}
+const MAX_DOCUMENT_BYTES = 950000
 
 function hasStorage() {
   return typeof window !== 'undefined' && Boolean(window.localStorage)
 }
 
-function readProducts() {
-  if (!hasStorage()) return []
-  return safeParse(window.localStorage.getItem(PRODUCTS_KEY), [])
-}
-
-function ensureSeed() {
-  if (!hasStorage()) return []
-  if (window.localStorage.getItem(PRODUCTS_KEY) === null) {
-    const seeded = createSeedProducts()
-    try {
-      window.localStorage.setItem(PRODUCTS_KEY, JSON.stringify(seeded))
-    } catch {
-      return seeded
-    }
-    return seeded
+function readLocal() {
+  if (!hasStorage()) return null
+  const raw = window.localStorage.getItem(PRODUCTS_KEY)
+  if (raw === null) return null
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : null
+  } catch {
+    return null
   }
-  return readProducts()
 }
 
-function persistProducts(products) {
-  if (!hasStorage()) throw new Error('El almacenamiento local no está disponible.')
+function writeLocal(products) {
+  if (!hasStorage()) return
   try {
     window.localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products))
-  } catch (error) {
-    if (error?.name === 'QuotaExceededError' || error?.code === 22) {
-      throw new Error(
-        'No hay espacio suficiente para guardar las imágenes. Prueba con fotos más livianas o elimina algunas.'
-      )
-    }
-    throw error
+  } catch {
+    void 0
   }
-  window.dispatchEvent(new Event('mercado-cl:products-changed'))
+}
+
+function ensureLocalSeed() {
+  const existing = readLocal()
+  if (existing && existing.length) return existing
+  const seeded = createSeedProducts()
+  writeLocal(seeded)
+  return seeded
 }
 
 function normalizeProduct(input) {
@@ -80,17 +77,114 @@ function normalizeProduct(input) {
   }
 }
 
-function sortProducts(products) {
-  return [...products].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+function toIso(value, fallback) {
+  if (!value) return fallback
+  if (typeof value.toDate === 'function') {
+    try {
+      return value.toDate().toISOString()
+    } catch {
+      return fallback
+    }
+  }
+  if (typeof value === 'string' && !Number.isNaN(new Date(value).getTime())) return value
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? fallback : date.toISOString()
 }
+
+function normalizeStored(input) {
+  const now = new Date().toISOString()
+  const rawId = String(input.id ?? '').trim()
+  const id = rawId ? rawId.replaceAll('/', '-') : createId()
+  const createdAt = toIso(input.createdAt, now)
+
+  return {
+    id,
+    ...normalizeProduct(input),
+    createdAt,
+    updatedAt: toIso(input.updatedAt, createdAt)
+  }
+}
+
+function sortProducts(products) {
+  const time = (value) => {
+    const result = new Date(value).getTime()
+    return Number.isNaN(result) ? 0 : result
+  }
+  return [...products].sort((a, b) => time(b.createdAt) - time(a.createdAt))
+}
+
+function documentSize(product) {
+  return new TextEncoder().encode(JSON.stringify(product)).length
+}
+
+function fitsDocument(product) {
+  return documentSize(product) <= MAX_DOCUMENT_BYTES
+}
+
+function assertDocumentSize(product) {
+  if (fitsDocument(product)) return
+  throw new Error(
+    'La publicación es demasiado grande para guardarse en Firestore. Usa imágenes más livianas o revisa la configuración de Firebase Storage.'
+  )
+}
+
+function cacheUpsert(product) {
+  const cached = readLocal()
+  if (!cached) return
+  const exists = cached.some((item) => item.id === product.id)
+  const next = exists
+    ? cached.map((item) => (item.id === product.id ? product : item))
+    : [product, ...cached]
+  writeLocal(next)
+}
+
+function cacheRemove(id) {
+  const cached = readLocal()
+  if (!cached) return
+  writeLocal(cached.filter((item) => item.id !== id))
+}
+
+function cacheList(products) {
+  if (products.length) writeLocal(products)
+}
+
+let seeding = null
 
 export const productStorage = {
   async list() {
-    return sortProducts(ensureSeed())
+    try {
+      const remote = await fetchProducts()
+      const products = remote.map(normalizeStored)
+      cacheList(products)
+      return sortProducts(products)
+    } catch (error) {
+      const local = ensureLocalSeed()
+      if (!local.length) {
+        throw new Error(error?.message || 'No pudimos cargar las publicaciones.')
+      }
+      return sortProducts(local.map(normalizeStored))
+    }
   },
 
   async get(id) {
-    return ensureSeed().find((product) => product.id === id) ?? null
+    try {
+      const remote = await fetchProduct(id)
+      return remote ? normalizeStored(remote) : null
+    } catch {
+      const local = ensureLocalSeed().find((product) => product.id === id)
+      return local ? normalizeStored(local) : null
+    }
+  },
+
+  subscribe(onChange, onError) {
+    return subscribeProducts(
+      (products) => {
+        const normalized = products.map(normalizeStored)
+        cacheList(normalized)
+        onChange(sortProducts(normalized))
+      },
+      onError
+    )
   },
 
   async create(input) {
@@ -101,44 +195,65 @@ export const productStorage = {
       createdAt: now,
       updatedAt: now
     }
-    persistProducts([product, ...ensureSeed()])
+    assertDocumentSize(product)
+    await saveRemoteProduct(product)
+    cacheUpsert(product)
     return product
   },
 
   async update(id, input) {
-    const products = ensureSeed()
-    const index = products.findIndex((product) => product.id === id)
-    if (index === -1) throw new Error('La publicación ya no existe.')
+    const existing = await fetchProduct(id)
+    if (!existing) throw new Error('La publicación ya no existe.')
+    const base = normalizeStored(existing)
     const updated = {
-      ...products[index],
+      ...base,
       ...normalizeProduct(input),
-      id,
-      createdAt: products[index].createdAt,
+      id: base.id,
+      createdAt: base.createdAt,
       updatedAt: new Date().toISOString()
     }
-    products[index] = updated
-    persistProducts(products)
+    assertDocumentSize(updated)
+    await saveRemoteProduct(updated)
+    cacheUpsert(updated)
     return updated
   },
 
   async remove(id) {
-    const products = ensureSeed()
-    const next = products.filter((product) => product.id !== id)
-    if (next.length === products.length) throw new Error('La publicación ya no existe.')
-    persistProducts(next)
+    await deleteRemoteProduct(id)
+    cacheRemove(id)
   },
 
   async setAvailability(id, availability) {
-    const products = ensureSeed()
-    const index = products.findIndex((product) => product.id === id)
-    if (index === -1) throw new Error('La publicación ya no existe.')
+    const existing = await fetchProduct(id)
+    if (!existing) throw new Error('La publicación ya no existe.')
     const updated = {
-      ...products[index],
+      ...normalizeStored(existing),
       availability: availability === 'vendido' ? 'vendido' : 'disponible',
       updatedAt: new Date().toISOString()
     }
-    products[index] = updated
-    persistProducts(products)
+    assertDocumentSize(updated)
+    await saveRemoteProduct(updated)
+    cacheUpsert(updated)
     return updated
+  },
+
+  async seedIfEmpty() {
+    if (seeding) return seeding
+    seeding = (async () => {
+      if (await hasProducts()) return 0
+
+      let products = ensureLocalSeed().map(normalizeStored).filter(fitsDocument)
+      if (!products.length) {
+        products = createSeedProducts().map(normalizeStored).filter(fitsDocument)
+      }
+      if (!products.length) return 0
+
+      await saveProducts(products)
+      cacheList(products)
+      return products.length
+    })().finally(() => {
+      seeding = null
+    })
+    return seeding
   }
 }

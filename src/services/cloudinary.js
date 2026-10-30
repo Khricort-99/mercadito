@@ -1,3 +1,5 @@
+import { dataUrlToBlob } from '../utils/blob.js'
+
 const env = import.meta.env
 
 function isPlaceholder(value) {
@@ -12,15 +14,12 @@ export function isCloudinaryConfigured() {
   )
 }
 
-function dataUrlToBlob(dataUrl) {
-  const [meta, base64] = dataUrl.split(',')
-  const mime = /data:([^;]+)/.exec(meta)?.[1] || 'image/jpeg'
-  const binary = atob(base64)
-  const bytes = new Uint8Array(binary.length)
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index)
-  }
-  return new Blob([bytes], { type: mime })
+function extensionFor(type) {
+  if (type === 'image/png') return 'png'
+  if (type === 'image/webp') return 'webp'
+  if (type === 'image/gif') return 'gif'
+  if (type === 'image/svg+xml') return 'svg'
+  return 'jpg'
 }
 
 export const uploadToCloudinary = async (file) => {
@@ -33,7 +32,7 @@ export const uploadToCloudinary = async (file) => {
 
   const blob = typeof file === 'string' ? dataUrlToBlob(file) : file
   const formData = new FormData()
-  formData.append('file', blob, blob.name || 'imagen.jpg')
+  formData.append('file', blob, blob.name || `imagen.${extensionFor(blob.type)}`)
   formData.append('upload_preset', uploadPreset)
 
   const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {

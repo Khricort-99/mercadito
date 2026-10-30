@@ -53,6 +53,7 @@ export function ImageUploader({ images, onChange, error }) {
     }
     setProcessing(true)
     const prepared = []
+    let usedLocalFallback = false
     for (const file of selected) {
       let dataUrl
       try {
@@ -61,18 +62,30 @@ export function ImageUploader({ images, onChange, error }) {
         toast(currentError?.message || 'No pudimos procesar una de las imágenes.', 'error')
         continue
       }
-      if (!isCloudinaryConfigured()) {
-        prepared.push(dataUrl)
-        continue
+
+      let uploadedUrl = ''
+      if (isCloudinaryConfigured()) {
+        try {
+          uploadedUrl = await uploadToCloudinary(dataUrl)
+        } catch {
+          uploadedUrl = ''
+        }
       }
-      try {
-        prepared.push(await uploadToCloudinary(file))
-      } catch {
+
+      if (uploadedUrl) {
+        prepared.push(uploadedUrl)
+      } else {
         prepared.push(dataUrl)
-        toast('No pudimos subir una imagen; se guardó localmente.', 'error')
+        usedLocalFallback = true
       }
     }
     setProcessing(false)
+    if (usedLocalFallback) {
+      toast(
+        'No pudimos subir una imagen a Cloudinary; se guardó dentro de la publicación. Revisa las variables de Cloudinary y que el preset sea unsigned.',
+        'error'
+      )
+    }
     if (prepared.length) onChange([...images, ...prepared])
     if (inputRef.current) inputRef.current.value = ''
   }

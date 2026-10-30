@@ -13,6 +13,7 @@ import { useToast } from '../context/ToastContext.jsx'
 import { CONDITION_STYLES, getCategory } from '../data/catalog.js'
 import { copyText } from '../utils/clipboard.js'
 import { formatDate, formatPrice, relativeTime } from '../utils/format.js'
+import { productUrl } from '../utils/url.js'
 
 export default function ProductDetail() {
   const { id } = useParams()
@@ -42,7 +43,7 @@ export default function ProductDetail() {
 
   const handleShare = async () => {
     if (!product) return
-    const url = `${window.location.origin}/producto/${product.id}`
+    const url = productUrl(product.id)
     const copied = await copyText(url)
     toast(
       copied ? 'Enlace del producto copiado al portapapeles.' : 'No pudimos copiar el enlace.',
