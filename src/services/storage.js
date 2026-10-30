@@ -158,22 +158,13 @@ export const productStorage = {
       cacheList(products)
       return sortProducts(products)
     } catch (error) {
-      const local = ensureLocalSeed()
-      if (!local.length) {
-        throw new Error(error?.message || 'No pudimos cargar las publicaciones.')
-      }
-      return sortProducts(local.map(normalizeStored))
+      throw new Error(error?.message || 'No pudimos cargar las publicaciones.')
     }
   },
 
   async get(id) {
-    try {
-      const remote = await fetchProduct(id)
-      return remote ? normalizeStored(remote) : null
-    } catch {
-      const local = ensureLocalSeed().find((product) => product.id === id)
-      return local ? normalizeStored(local) : null
-    }
+    const remote = await fetchProduct(id)
+    return remote ? normalizeStored(remote) : null
   },
 
   subscribe(onChange, onError) {
