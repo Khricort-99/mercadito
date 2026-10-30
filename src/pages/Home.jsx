@@ -103,7 +103,16 @@ export default function Home() {
     })
   }, [products, filters])
 
-  const displayedProducts = visibleProducts.slice(0, 15)
+  const hasActiveIntent =
+    Boolean(filters.q) ||
+    filters.categoria !== 'todas' ||
+    Boolean(filters.genero) ||
+    Boolean(filters.ubicacion) ||
+    filters.estado.length > 0 ||
+    filters.vendidos ||
+    Boolean(filters.min || filters.max)
+
+  const displayedProducts = hasActiveIntent ? visibleProducts.slice(0, 15) : []
 
   const activeFilterCount = [
     Boolean(filters.q),
@@ -165,9 +174,11 @@ export default function Home() {
     filters.categoria !== 'todas' ? getCategory(filters.categoria).label : ''
   usePageTitle(pageTitle)
 
-  const resultsLabel = `${displayedProducts.length} ${
-    displayedProducts.length === 1 ? 'publicación' : 'publicaciones'
-  }`
+  const resultsLabel = hasActiveIntent
+    ? `${displayedProducts.length} ${
+        displayedProducts.length === 1 ? 'publicación' : 'publicaciones'
+      }`
+    : ''
 
   return (
     <div className="min-h-screen bg-fb-bg">
@@ -265,21 +276,25 @@ export default function Home() {
             </div>
           )}
 
-          {!loading && visibleProducts.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-fb-border bg-white px-6 py-16 text-center">
-              <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-fb-bg text-fb-gray">
-                <SearchX size={26} />
-              </span>
-              <h2 className="mt-4 text-lg font-bold">No encontramos publicaciones</h2>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-fb-gray">
-                Prueba con otra búsqueda o ajusta los filtros para ver más resultados.
-              </p>
-              <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                Limpiar filtros
-              </Button>
-            </div>
-          ) : (
-            <ProductGrid products={displayedProducts} loading={loading} skeletonCount={10} />
+          {hasActiveIntent && (
+            <>
+              {!loading && displayedProducts.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-fb-border bg-white px-6 py-16 text-center">
+                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-fb-bg text-fb-gray">
+                    <SearchX size={26} />
+                  </span>
+                  <h2 className="mt-4 text-lg font-bold">No encontramos publicaciones</h2>
+                  <p className="mx-auto mt-1 max-w-sm text-sm text-fb-gray">
+                    Prueba con otra búsqueda o ajusta los filtros para ver más resultados.
+                  </p>
+                  <Button variant="outline" className="mt-4" onClick={clearFilters}>
+                    Limpiar filtros
+                  </Button>
+                </div>
+              ) : (
+                <ProductGrid products={displayedProducts} loading={loading} skeletonCount={10} />
+              )}
+            </>
           )}
         </section>
       </main>
