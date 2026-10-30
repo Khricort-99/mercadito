@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react'
+import { assetUrl } from '../../utils/assets.js'
 
 export function ImageGallery({ images, title, sold = false, className = '' }) {
   const [index, setIndex] = useState(0)
@@ -40,7 +41,7 @@ export function ImageGallery({ images, title, sold = false, className = '' }) {
         {current ? (
           <img
             key={`${current}-${safeIndex}`}
-            src={current}
+            src={assetUrl(current)}
             alt={`${title} - foto ${safeIndex + 1}`}
             className="animate-fade-in h-full w-full object-cover"
           />
@@ -98,7 +99,7 @@ export function ImageGallery({ images, title, sold = false, className = '' }) {
               aria-current={imageIndex === safeIndex}
             >
               <img
-                src={image}
+                src={assetUrl(image)}
                 alt={`Miniatura ${imageIndex + 1} de ${title}`}
                 className="h-full w-full object-cover"
               />

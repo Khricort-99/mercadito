@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { MAX_IMAGES } from '../../data/catalog.js'
 import { prepareImage } from '../../utils/images.js'
+import { assetUrl } from '../../utils/assets.js'
 import { isCloudinaryConfigured, uploadToCloudinary } from '../../services/cloudinary.js'
 import { useToast } from '../../context/ToastContext.jsx'
 
@@ -173,7 +174,7 @@ export function ImageUploader({ images, onChange, error }) {
               }`}
             >
               <img
-                src={image}
+                src={assetUrl(image)}
                 alt={`Foto ${index + 1}`}
                 draggable={false}
                 className="h-full w-full object-cover"

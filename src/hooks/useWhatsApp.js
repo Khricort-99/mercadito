@@ -9,7 +9,7 @@ function getWhatsAppNumber() {
 
 function buildProductUrl(product) {
   if (typeof window === 'undefined') return ''
-  return `${window.location.origin}/producto/${product.id}`
+  return `${window.location.origin}${import.meta.env.BASE_URL}producto/${product.id}`
 }
 
 function buildProductMessage(product, url) {

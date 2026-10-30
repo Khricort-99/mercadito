@@ -2,11 +2,15 @@
   "name": "mercado-cl",
   "private": true,
   "version": "1.0.0",
+  "homepage": "https://khricort-99.github.io/mercadito/",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "postbuild": "node scripts/copy-404.mjs",
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "firebase": "^13.1.0",
@@ -18,6 +22,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "gh-pages": "^6.3.0",
     "tailwindcss": "^4.0.0",
     "vite": "^6.0.7"
   },

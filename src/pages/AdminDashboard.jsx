@@ -20,6 +20,7 @@ import { Modal } from '../components/common/Modal.jsx'
 import { Button, buttonClasses } from '../components/common/Button.jsx'
 import { getCategory } from '../data/catalog.js'
 import { formatDate, formatPrice, normalizeText, relativeTime } from '../utils/format.js'
+import { assetUrl } from '../utils/assets.js'
 
 const iconButton =
   'grid h-8 w-8 place-items-center rounded-md text-fb-gray transition hover:bg-fb-bg hover:text-fb-ink'
@@ -281,7 +282,7 @@ export default function AdminDashboard() {
                         <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-fb-bg">
                           {product.images?.[0] ? (
                             <img
-                              src={product.images[0]}
+                              src={assetUrl(product.images[0])}
                               alt=""
                               className="h-full w-full object-cover"
                             />
@@ -376,7 +377,7 @@ export default function AdminDashboard() {
                   <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-fb-bg">
                     {product.images?.[0] ? (
                       <img
-                        src={product.images[0]}
+                        src={assetUrl(product.images[0])}
                         alt=""
                         className="h-full w-full object-cover"
                       />

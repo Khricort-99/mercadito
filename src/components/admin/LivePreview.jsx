@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Clock3, ImageOff, MapPin } from 'lucide-react'
 import { CONDITION_STYLES, getCategory } from '../../data/catalog.js'
 import { formatPrice, shortLocation } from '../../utils/format.js'
+import { assetUrl } from '../../utils/assets.js'
 import { WhatsAppIcon } from '../common/WhatsAppIcon.jsx'
 
 const TABS = [
@@ -55,7 +56,7 @@ export function LivePreview({ form }) {
               <div className="mx-auto max-w-[270px] overflow-hidden rounded-xl border border-fb-line bg-white shadow-card">
                 <div className="relative aspect-square bg-fb-bg">
                   {cover ? (
-                    <img src={cover} alt="Portada de la publicación" className="h-full w-full object-cover" />
+                    <img src={assetUrl(cover)} alt="Portada de la publicación" className="h-full w-full object-cover" />
                   ) : (
                     <span className="grid h-full place-items-center text-fb-gray">
                       <ImageOff size={38} />
@@ -105,7 +106,7 @@ export function LivePreview({ form }) {
             <div className="overflow-hidden rounded-xl border border-fb-line bg-white">
               <div className="relative aspect-[4/3] bg-fb-bg">
                 {cover ? (
-                  <img src={cover} alt="Foto principal" className="h-full w-full object-cover" />
+                  <img src={assetUrl(cover)} alt="Foto principal" className="h-full w-full object-cover" />
                 ) : (
                   <span className="grid h-full place-items-center text-fb-gray">
                     <ImageOff size={44} />

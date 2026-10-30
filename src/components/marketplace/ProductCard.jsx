@@ -2,13 +2,14 @@ import { Link } from 'react-router-dom'
 import { Clock3, ImageOff, MapPin } from 'lucide-react'
 import { CONDITION_STYLES } from '../../data/catalog.js'
 import { formatPrice, relativeTime, shortLocation } from '../../utils/format.js'
+import { assetUrl } from '../../utils/assets.js'
 import { useWhatsApp } from '../../hooks/useWhatsApp.js'
 import { WhatsAppIcon } from '../common/WhatsAppIcon.jsx'
 
 export function ProductCard({ product }) {
   const { openChat } = useWhatsApp()
   const sold = product.availability === 'vendido'
-  const cover = product.images?.[0]
+  const cover = assetUrl(product.images?.[0])
   const detailUrl = `/producto/${product.id}`
   const conditionStyle = CONDITION_STYLES[product.condition] ?? CONDITION_STYLES['Usado - Buen estado']
 
