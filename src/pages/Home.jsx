@@ -117,7 +117,7 @@ export default function Home() {
     filters.vendidos ||
     Boolean(filters.min || filters.max)
 
-  const displayedProducts = hasActiveIntent ? visibleProducts.slice(0, 15) : []
+  const displayedProducts = visibleProducts.slice(0, 15)
 
   const activeFilterCount = [
     Boolean(filters.q),
@@ -179,11 +179,12 @@ export default function Home() {
     filters.categoria !== 'todas' ? getCategory(filters.categoria).label : ''
   usePageTitle(pageTitle)
 
-  const resultsLabel = hasActiveIntent
-    ? `${displayedProducts.length} ${
-        displayedProducts.length === 1 ? 'publicación' : 'publicaciones'
-      }`
-    : ''
+  const resultsLabel =
+    hasActiveIntent || displayedProducts.length > 0
+      ? `${displayedProducts.length} ${
+          displayedProducts.length === 1 ? 'publicación' : 'publicaciones'
+        }`
+      : ''
 
   return (
     <div className="min-h-screen bg-fb-bg">
@@ -193,7 +194,7 @@ export default function Home() {
         <aside className="hidden w-64 shrink-0 lg:block xl:w-72">
           <div className="sticky top-20 rounded-xl border border-fb-line bg-white p-4 shadow-card">
             <ProductFilters
-              products={products}
+              products={realProducts}
               filters={filters}
               onChange={updateFilters}
               onClear={clearFilters}
@@ -281,26 +282,30 @@ export default function Home() {
             </div>
           )}
 
-          {hasActiveIntent && (
+          {hasActiveIntent || displayedProducts.length > 0 ? (
             <>
-              {!loading && displayedProducts.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-fb-border bg-white px-6 py-16 text-center">
-                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-fb-bg text-fb-gray">
-                    <SearchX size={26} />
-                  </span>
-                  <h2 className="mt-4 text-lg font-bold">No encontramos publicaciones</h2>
-                  <p className="mx-auto mt-1 max-w-sm text-sm text-fb-gray">
-                    Prueba con otra búsqueda o ajusta los filtros para ver más resultados.
-                  </p>
-                  <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                    Limpiar filtros
-                  </Button>
-                </div>
+              {displayedProducts.length === 0 ? (
+                loading ? (
+                  <ProductGrid products={[]} loading skeletonCount={10} />
+                ) : (
+                  <div className="rounded-xl border border-dashed border-fb-border bg-white px-6 py-16 text-center">
+                    <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-fb-bg text-fb-gray">
+                      <SearchX size={26} />
+                    </span>
+                    <h2 className="mt-4 text-lg font-bold">No encontramos publicaciones</h2>
+                    <p className="mx-auto mt-1 max-w-sm text-sm text-fb-gray">
+                      Prueba con otra búsqueda o ajusta los filtros para ver más resultados.
+                    </p>
+                    <Button variant="outline" className="mt-4" onClick={clearFilters}>
+                      Limpiar filtros
+                    </Button>
+                  </div>
+                )
               ) : (
                 <ProductGrid products={displayedProducts} loading={loading} skeletonCount={10} />
               )}
             </>
-          )}
+          ) : null}
         </section>
       </main>
 
@@ -322,7 +327,7 @@ export default function Home() {
       >
         <div className="p-4">
           <ProductFilters
-            products={products}
+            products={realProducts}
             filters={filters}
             onChange={updateFilters}
             onClear={clearFilters}

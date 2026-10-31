@@ -1,16 +1,24 @@
 import { dataUrlToBlob } from '../utils/blob.js'
 
-const env = import.meta.env
+const DEFAULT_CONFIG = {
+  VITE_CLOUDINARY_CLOUD_NAME: 'xcny56fc',
+  VITE_CLOUDINARY_UPLOAD_PRESET: 'Tienda'
+}
 
 function isPlaceholder(value) {
   if (!value) return true
   return /^(tu_|your_|tu-|your-|tu\s|your\s)/i.test(value)
 }
 
+function read(key) {
+  const value = import.meta.env[key]
+  return value && !isPlaceholder(value) ? value : DEFAULT_CONFIG[key]
+}
+
 export function isCloudinaryConfigured() {
   return (
-    !isPlaceholder(env.VITE_CLOUDINARY_CLOUD_NAME) &&
-    !isPlaceholder(env.VITE_CLOUDINARY_UPLOAD_PRESET)
+    !isPlaceholder(read('VITE_CLOUDINARY_CLOUD_NAME')) &&
+    !isPlaceholder(read('VITE_CLOUDINARY_UPLOAD_PRESET'))
   )
 }
 
@@ -23,8 +31,8 @@ function extensionFor(type) {
 }
 
 export const uploadToCloudinary = async (file) => {
-  const cloudName = env.VITE_CLOUDINARY_CLOUD_NAME
-  const uploadPreset = env.VITE_CLOUDINARY_UPLOAD_PRESET
+  const cloudName = read('VITE_CLOUDINARY_CLOUD_NAME')
+  const uploadPreset = read('VITE_CLOUDINARY_UPLOAD_PRESET')
 
   if (!cloudName || !uploadPreset) {
     throw new Error('Faltan las credenciales de Cloudinary en el archivo .env')

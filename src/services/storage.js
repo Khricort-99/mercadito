@@ -1,12 +1,9 @@
-import { createSeedProducts } from '../data/seed.js'
 import { createId } from '../utils/id.js'
 import {
   deleteProduct as deleteRemoteProduct,
   fetchProduct,
   fetchProducts,
-  hasProducts,
   saveProduct as saveRemoteProduct,
-  saveProducts,
   subscribeProducts
 } from './firestore.js'
 
@@ -36,13 +33,6 @@ function writeLocal(products) {
   } catch {
     void 0
   }
-}
-
-function ensureLocalSeed() {
-  const existing = readLocal()
-  if (existing && existing.length) return existing
-  writeLocal([])
-  return []
 }
 
 function normalizeProduct(input) {
@@ -147,8 +137,6 @@ function cacheList(products) {
   if (products.length) writeLocal(products)
 }
 
-let seeding = null
-
 export const productStorage = {
   async list() {
     try {
@@ -225,25 +213,5 @@ export const productStorage = {
     await saveRemoteProduct(updated)
     cacheUpsert(updated)
     return updated
-  },
-
-  async seedIfEmpty() {
-    if (seeding) return seeding
-    seeding = (async () => {
-      if (await hasProducts()) return 0
-
-      let products = ensureLocalSeed().map(normalizeStored).filter(fitsDocument)
-      if (!products.length) {
-        products = createSeedProducts().map(normalizeStored).filter(fitsDocument)
-      }
-      if (!products.length) return 0
-
-      await saveProducts(products)
-      cacheList(products)
-      return products.length
-    })().finally(() => {
-      seeding = null
-    })
-    return seeding
   }
 }
